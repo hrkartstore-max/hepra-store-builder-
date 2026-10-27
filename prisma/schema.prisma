@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MANAGER
+  STAFF
+}
+enum StoreStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+}
+model User {
+  id String @id @default(cuid())
+  name String?
+  email String @unique
+  passwordHash String
+  emailVerified DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions Session[]
+  memberships Membership[]
+}
+model Session {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  userId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+model Organization {
+  id String @id @default(cuid())
+  name String
+  slug String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships Membership[]
+  stores Store[]
+}
+model Membership {
+  id String @id @default(cuid())
+  userId String
+  organizationId String
+  role MembershipRole @default(OWNER)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+model Store {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  slug String @unique
+  description String?
+  logoUrl String?
+  currency String @default("INR")
+  status StoreStatus @default(DRAFT)
+  themeConfig Json @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products Product[]
+  orders Order[]
+  pages StorePage[]
+  domains StoreDomain[]
+  @@index([organizationId, createdAt])
+  @@index([status, slug])
+}
+model StoreDomain {
+  id String @id @default(cuid())
+  storeId String
+  hostname String @unique
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  @@index([storeId])
+}
+model Product {
+  id String @id @default(cuid())
+  storeId String
+  title String
+  slug String
+  description String? @db.Text
+  pricePaise Int
+  compareAtPaise Int?
+  sku String?
+  imageUrl String?
+  inventory Int @default(0)
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  @@unique([storeId, slug])
+  @@index([storeId, isActive, createdAt])
+  @@index([storeId, sku])
+}
+model StorePage {
+  id String @id @default(cuid())
+  storeId String
+  title String
+  slug String
+  content Json @default("{}")
+  isPublished Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  @@unique([storeId, slug])
+}
+model Order {
+  id String @id @default(cuid())
+  storeId String
+  orderNumber String
+  customerName String
+  customerEmail String?
+  customerPhone String?
+  shippingAddress Json?
+  subtotalPaise Int
+  shippingPaise Int @default(0)
+  taxPaise Int @default(0)
+  totalPaise Int
+  currency String @default("INR")
+  status OrderStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentProvider String?
+  paymentReference String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  store Store @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  items OrderItem[]
+  @@unique([storeId, orderNumber])
+  @@index([storeId, createdAt])
+  @@index([storeId, status, createdAt])
+}
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  productId String?
+  productTitle String
+  sku String?
+  quantity Int
+  unitPricePaise Int
+  lineTotalPaise Int
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  @@index([orderId])
+  @@index([productId])
+}
+model Plan {
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  pricePaise Int
+  billingInterval String @default("MONTH")
+  maxProducts Int @default(50)
+  maxStaff Int @default(1)
+  customDomain Boolean @default(false)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  subscriptions Subscription[]
+}
+model Subscription {
+  id String @id @default(cuid())
+  organizationId String
+  planId String
+  provider String?
+  providerSubscriptionId String? @unique
+  status String @default("TRIAL")
+  currentPeriodStart DateTime?
+  currentPeriodEnd DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  @@index([organizationId, status])
+}
+model WebhookEvent {
+  id String @id @default(cuid())
+  provider String
+  eventId String
+  eventType String
+  processedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([provider, eventId])
+  @@index([processedAt, createdAt])
+}
+model AuditLog {
+  id String @id @default(cuid())
+  organizationId String
+  actorUserId String?
+  action String
+  entityType String
+  entityId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+}
