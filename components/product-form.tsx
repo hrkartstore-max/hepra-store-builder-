@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 export function ProductForm(){
  const [busy,setBusy]=useState(false);const [error,setError]=useState("");const router=useRouter();
  async function submit(event:FormEvent<HTMLFormElement>){
-  event.preventDefault();setBusy(true);setError("");
-  const payload=Object.fromEntries(new FormData(event.currentTarget).entries());
-  try{const response=await fetch("/api/products",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok)throw new Error(result.error||"Unable to create product.");event.currentTarget.reset();router.refresh();}
+  event.preventDefault();const form=event.currentTarget;setBusy(true);setError("");
+  const payload=Object.fromEntries(new FormData(form).entries());
+  try{const response=await fetch("/api/products",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok)throw new Error(result.error||"Unable to create product.");form.reset();router.refresh();}
   catch(err){setError(err instanceof Error?err.message:"Unable to create product.");}
   finally{setBusy(false);}
  }
