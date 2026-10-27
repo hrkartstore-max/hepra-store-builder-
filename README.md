@@ -24,7 +24,7 @@ See [PHASE-1.md](./PHASE-1.md) for architecture, setup, and deployment notes.
 3. Configure `DATABASE_URL`, `DIRECT_URL`, and `SESSION_SECRET` (at least 32 characters).
 4. Run `npm install`.
 5. Run `npm run db:generate`.
-6. Run `npm run db:migrate` against a development PostgreSQL database.
+6. Run `npm run db:deploy` to apply the checked-in migration, or `npm run db:migrate` for local schema changes.
 7. Run `npm run db:seed`.
 8. Run `npm run check` and `npm run build`.
 9. Start locally with `npm run dev`.
