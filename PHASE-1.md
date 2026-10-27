@@ -1,47 +1,37 @@
 # HEPRA Store Builder — Phase 1 Foundation
 
-## Included in this branch
-- Next.js App Router + TypeScript foundation
-- Responsive HEPRA marketing landing page and design system
-- Email/password registration and login backed by PostgreSQL sessions
-- Merchant onboarding creates a user, organization, membership and draft store
-- Initial multi-tenant commerce schema using Prisma
-- Merchant dashboard with store, product count, order count and paid revenue summaries
-- Tenant-scoped product creation form and API; newly added products render in the store preview
-- Database-driven public storefront at `/store/[slug]`
-- Configurable Starter, Growth and Business plan seed data
-- Baseline security headers and environment template
+## Included
+- Responsive HEPRA marketing homepage and design system.
+- Email/password registration and login, bcrypt password hashing, and opaque database-backed HttpOnly sessions.
+- Multi-tenant PostgreSQL/Prisma schema and checked-in initial migration.
+- Merchant onboarding creates a user, organization, owner membership and draft store.
+- Merchant dashboard, product creation/catalog, and database-driven store preview.
+- Draft-store preview authorization: only organization members can view drafts; suspended stores return not found.
+- Starter/Growth/Business plan seed data, security headers, environment template, CI workflow and Vercel configuration.
 
 ## Stack
-- Node.js 20.9+
-- Next.js 15, React 19, TypeScript
-- PostgreSQL + Prisma 6
-- bcryptjs password hashing
-- Random opaque HttpOnly session cookies; only SHA-256 token hashes are stored
-- Vercel-compatible application deployment
+- Node.js 20.9+, Next.js 15, React 19, TypeScript.
+- PostgreSQL + Prisma 6.
+- bcryptjs; HMAC-SHA256 session-token digests; random opaque tokens.
+- Vercel-compatible deployment.
 
 ## Local setup
-1. Copy `.env.example` to `.env`.
-2. Set `DATABASE_URL`, `DIRECT_URL`, and a strong `SESSION_SECRET` (32+ characters).
-3. Run `npm install`.
-4. Run `npm run db:generate`.
-5. Run `npm run db:migrate` against a development database.
-6. Run `npm run db:seed`.
-7. Run `npm run check` and `npm run build`.
-8. Run `npm run dev`.
+1. Copy .env.example to .env and configure a development PostgreSQL URL in both database fields.
+2. Set SESSION_SECRET to a random value of at least 32 characters.
+3. Run npm install.
+4. Run npm run db:generate.
+5. Run npm run db:deploy to apply the checked-in migration, or npm run db:migrate while developing schema changes.
+6. Run npm run db:seed.
+7. Run npm run check and npm run build.
+8. Run npm run dev.
 
-## Security and release notes
-- Never commit `.env` or provider credentials.
-- Use a pooled PostgreSQL URL for serverless runtime and a direct URL for migrations when supported.
-- Registration and login require a migrated database and `SESSION_SECRET`.
-- Scope tenant-owned queries to verified membership and store ownership.
-- Payment processing, email verification, password reset, rate limiting, product editing, checkout, custom-domain verification and subscription-provider webhooks remain future work.
-- Marketing plan prices are illustrative and must be finalized before public launch.
+## Vercel + managed PostgreSQL
+- Provision managed PostgreSQL (Neon is one option).
+- Set DATABASE_URL to the provider's pooled/runtime URL where supported and DIRECT_URL to its direct connection URL.
+- Set SESSION_SECRET and APP_URL in Vercel Preview and Production environments.
+- Deploy the branch as a Preview first; verify migrations, registration/login/logout, product creation and draft-store access before promoting.
+- Apply reviewed migrations with npm run db:deploy in a controlled release step. Never use destructive schema pushes on production.
+- Keep database backups and monitor errors before launch.
 
-## Deployment checklist
-1. Provision managed PostgreSQL (Neon or another supported provider).
-2. Configure `DATABASE_URL`, `DIRECT_URL`, `SESSION_SECRET` and `APP_URL` in Vercel.
-3. Review and commit migrations, then run `npm run db:deploy` as a controlled release step.
-4. Build with `npm run build`.
-5. Test registration, login, logout, dashboard authorization and store rendering against staging data.
-6. Configure a production domain, monitoring and backups before launch.
+## Scope limits
+This is a Phase 1 foundation, not the complete commerce SaaS. Product editing/deletion, cart and checkout, payment provider integration, email verification/password reset, production-grade rate limiting, custom-domain verification, subscription-provider webhooks and a visual theme editor remain future work. Marketing plan prices are illustrative. Never commit secrets.
