@@ -7,6 +7,7 @@
 - Merchant onboarding creates a user, organization, membership and draft store
 - Initial multi-tenant commerce schema using Prisma
 - Merchant dashboard with store, product count, order count and paid revenue summaries
+- Tenant-scoped product creation form and API; newly added products render in the store preview
 - Database-driven public storefront at `/store/[slug]`
 - Configurable Starter, Growth and Business plan seed data
 - Baseline security headers and environment template
