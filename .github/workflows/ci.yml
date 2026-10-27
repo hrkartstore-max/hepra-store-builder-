@@ -1,0 +1,38 @@
+name: Phase 1 CI
+on:
+  pull_request:
+  push:
+    branches: [main, phase-1-foundation]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hepra?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/hepra?schema=public
+      SESSION_SECRET: ci-only-session-secret-not-for-production-123456789
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hepra
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hepra"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx prisma validate
+      - run: npm run db:generate
+      - run: npm run db:deploy
+      - run: npm run db:seed
+      - run: npm run check
+      - run: npm run build

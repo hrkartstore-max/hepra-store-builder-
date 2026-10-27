@@ -1,0 +1,12 @@
+import Link from "next/link";
+import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
+import { ProductForm } from "@/components/product-form";
+function money(paise:number,currency="INR"){return new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:2}).format(paise/100);}
+export default async function ProductsPage(){
+ const user=await requireUser();
+ const membership=await prisma.membership.findFirst({where:{userId:user.id},include:{organization:{include:{stores:{orderBy:{createdAt:"asc"},take:1}}}}});
+ const store=membership?.organization.stores[0];
+ const products=store?await prisma.product.findMany({where:{storeId:store.id},orderBy:{createdAt:"desc"},take:100}):[];
+ return <main className="app-shell"><aside className="app-sidebar"><Link className="brand" href="/"><span className="brand-mark">H</span>HEPRA</Link><nav className="app-nav" aria-label="Merchant navigation"><Link href="/dashboard">▦　Overview</Link><Link className="active" href="/dashboard/products">▤　Products</Link>{store&&<Link href={`/store/${store.slug}`}>◇　View store</Link>}<Link href="/dashboard#orders">↗　Orders</Link></nav><div style={{marginTop:"auto",fontSize:11,color:"var(--muted)"}}>{user.email}</div></aside><section className="app-main"><header className="app-topbar"><div><h1>Products</h1><p>Add products to your catalog and display them on your storefront.</p></div><Link className="btn btn-light" href="/dashboard">← Dashboard</Link></header><div className="panel" style={{marginBottom:18}}><h2>Add a product</h2><ProductForm/></div><div className="panel"><h2>Your catalog ({products.length})</h2>{products.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead><tbody>{products.map(p=><tr key={p.id}><td><strong>{p.title}</strong><div style={{fontSize:10,color:"var(--muted)"}}>{p.sku||p.slug}</div></td><td>{money(p.pricePaise,store?.currency)}</td><td>{p.inventory}</td><td><span className="pill">{p.isActive?"Active":"Draft"}</span></td></tr>)}</tbody></table></div>:<p>Your product catalog is empty. Add your first product above; it will appear on the storefront automatically.</p>}</div></section></main>;
+}
