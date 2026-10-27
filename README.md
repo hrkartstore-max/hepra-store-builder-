@@ -1,27 +1,36 @@
-# HEPRA Store Builder — v3.0.0
+# HEPRA Store Builder
 
-**Release target:** v3.0.0
+HEPRA is a multi-tenant commerce SaaS foundation for Indian small businesses and D2C brands. It combines a public marketing site, merchant workspace, and store-specific storefronts.
 
-HEPRA Store Builder is a multi-tenant commerce platform project with a merchant dashboard, storefronts, catalog and order flows, analytics, inventory, fulfillment, and customer notifications.
+## Phase 1 foundation
 
-## v3.0.0 upgrade package
+This branch adds a Next.js App Router application, PostgreSQL/Prisma data model, email/password registration and login, secure database-backed sessions, a merchant dashboard, and a database-driven storefront route.
 
-The upgraded source archive is available in this ChatGPT conversation as **hepra-store-builder-v3.0.0-upgraded.zip**. This release includes source-level fixes, baseline security headers, optional WhatsApp checkout consent, GitHub Actions CI configuration, Dependabot configuration, and security/upgrade documentation.
+See [PHASE-1.md](./PHASE-1.md) for architecture, setup, and deployment notes.
 
-**Important:** the full source archive is not yet committed to this GitHub repository. The GitHub connector available for this session can commit UTF-8 text files, but cannot upload a local binary archive directly. Do not treat this documentation-only repository as a deployable application until the source files are uploaded.
+## Stack
+
+- Node.js 20.9+
+- Next.js 15, React 19 and TypeScript
+- PostgreSQL and Prisma ORM
+- bcryptjs password hashing
+- HttpOnly session cookie with random opaque token; only its hash is stored
+- Vercel-compatible deployment
 
 ## Local setup
 
-1. Extract the v3.0.0 source archive into a working directory.
-2. Install Node.js 20.9 or newer.
-3. Copy `.env.example` to `.env` and configure database and provider credentials.
+1. Install Node.js 20.9 or newer.
+2. Copy `.env.example` to `.env`.
+3. Configure `DATABASE_URL`, `DIRECT_URL`, and `SESSION_SECRET` (at least 32 characters).
 4. Run `npm install`.
 5. Run `npm run db:generate`.
-6. Apply migrations to a staging database with `npm run db:deploy`.
-7. Run `npm run check` and `npm run build`.
+6. Run `npm run db:migrate` against a development PostgreSQL database.
+7. Run `npm run db:seed`.
+8. Run `npm run check` and `npm run build`.
+9. Start locally with `npm run dev`.
 
-See `UPGRADE-3.0.0.md`, `FINAL-RESULT.md`, and `PHASE-26.md` for scope and operational notes.
+## Important scope notes
 
-## Validation status
+This is the Phase 1 foundation, not yet a complete production commerce platform. Product editing, cart and checkout, payment gateway webhooks, email verification and password reset, rate limiting, custom-domain verification, subscription provider integration, and the visual theme editor are planned for subsequent phases. The plan prices on the marketing page are illustrative.
 
-The v3.0.0 ZIP passed archive integrity and structural assertions, and no TypeScript parser diagnostics were found. A full typecheck, lint, production build, live database migration, payment test, and live email/WhatsApp test have not been completed because dependencies could not be installed in this environment. Run the included CI workflow after the full source is uploaded.
+Do not commit secrets or real credentials. Tenant-scoped authorization and staging validation are required before production use.
