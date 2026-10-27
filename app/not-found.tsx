@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFoundPage(){return <main className="auth-main" style={{minHeight:"70vh"}}><section className="auth-card"><span className="eyebrow">404 · NOT FOUND</span><h2 style={{marginTop:20}}>This page isn't available.</h2><p>The page may have moved, or the store is not published.</p><Link className="btn btn-primary" href="/">Back to HEPRA</Link></section></main>}
